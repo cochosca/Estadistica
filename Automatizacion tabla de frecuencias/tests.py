@@ -1,4 +1,2 @@
-from pandas import DataFrame
-table = [[1, 2], [0, 9]]
-df = DataFrame(table, columns=["hola", "chau"])
-print(df)
+def class_interval_width(raw_data):
+    range_data = raw_data[0] - raw_data[-1]
