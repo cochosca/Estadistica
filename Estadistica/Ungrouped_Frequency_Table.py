@@ -105,7 +105,7 @@ class UngroupedFrequencyTable:
                                                       "Relative Cumulative Frequency", "Percentage"])
         self.df = df
         # self.df.to_csv("")
-        # return df
+        return self.df
 
 
 class CentralTrendMeasures(UngroupedFrequencyTable):
@@ -159,6 +159,3 @@ class CentralTrendMeasures(UngroupedFrequencyTable):
         CentralTrendMeasures.arithmetic_mean(self)
         CentralTrendMeasures.median(self)
         CentralTrendMeasures.trend(self)
-
-test = CentralTrendMeasures([4, 9, 85, 72, 95, 80, 24, 4, 85, 9, 90])
-print(test.get_all())
