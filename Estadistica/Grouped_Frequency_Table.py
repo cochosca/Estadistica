@@ -48,7 +48,7 @@ class GroupedFrequencyTable(UngroupedFrequencyTable):
 
     def get_intervals(self):
         """Calculate the intervals for the plots and for the frequencies"""
-        print(GroupedFrequencyTable.class_interval_width(self))
+        GroupedFrequencyTable.class_interval_width(self)
 
         # get the interval for plots of matplotlib
         accumulated = int(min(self.raw_data))
@@ -61,7 +61,7 @@ class GroupedFrequencyTable(UngroupedFrequencyTable):
         intervals_for_frequency = []
         amount_intervals = len(intervals_for_plot)
         for n in range(amount_intervals - 1):
-            intervals_for_frequency.append([intervals_for_plot[n], intervals_for_plot[n+1]])
+            intervals_for_frequency.append([intervals_for_plot[n], intervals_for_plot[n + 1]])
         intervals_for_frequency[-1][-1] += 1
         intervals_for_plot[-1] += 1
 
@@ -73,19 +73,20 @@ class GroupedFrequencyTable(UngroupedFrequencyTable):
 
     def get_class_mark(self):
         """Calculate the class marks"""
-        print(GroupedFrequencyTable.get_intervals(self))
+        GroupedFrequencyTable.get_intervals(self)
 
         # mean of each interval
         class_mark = []
         for i in range(len(self.intervals_for_frequency)):
-            class_mark.append((self.intervals_for_frequency[i][0] + self.intervals_for_frequency[i][1])/2)
+            class_mark.append((self.intervals_for_frequency[i][0] + self.intervals_for_frequency[i][1]) / 2)
         self.class_mark = class_mark
         return f"=> The class marks: {class_mark}"
 
     # Absolute Frequency for grouped Frequencies
     def fi_gf(self):
         """Create a list of frequencies of each interval"""
-        print(GroupedFrequencyTable.get_class_mark(self))
+        GroupedFrequencyTable.get_class_mark(self)
+
         self.freq_absolute = [0 for i in range(len(self.intervals_for_frequency))]
         # calculate the frequencies
         for data in self.raw_data:
@@ -106,6 +107,7 @@ class GroupedFrequencyTable(UngroupedFrequencyTable):
     def nest_frequency(self):
         """Nest the frequencies for the pandas DataFrame"""
         GroupedFrequencyTable.calculate_all(self)
+
         grouped_frequency_table = []
         for a, b, c, d, f, g, h in zip(self.intervals_for_frequency, self.class_mark,
                                        self.freq_absolute, self.freq_cumulative,
@@ -117,6 +119,7 @@ class GroupedFrequencyTable(UngroupedFrequencyTable):
     def make_data_frame(self):
         """Make the data frame of pandas"""
         GroupedFrequencyTable.nest_frequency(self)
+
         df = DataFrame(self.grouped_frequency_table,
                        columns=["Class Interval", "Class Mark", "Absolute Frequency",
                                 "Absolute Cumulative Frequency", "Relative Frequency",
@@ -125,8 +128,67 @@ class GroupedFrequencyTable(UngroupedFrequencyTable):
         return self.df
 
 
+class CentralTrendMeasuresGrouped(GroupedFrequencyTable):
+    """This class calculate the central trend measures for ungrouped frequencies"""
+
+    def __init__(self, raw_data):
+        super().__init__(raw_data)
+        CentralTrendMeasuresGrouped.make_data_frame(self)
+
+    def arithmetic_mean_grouped(self):
+        """Calculate the arithmetic mean of grouped frequencies"""
+        summation = sum(self.class_mark)
+        mean_grouped = round(summation / self.n, 2)
+        return f"--> The mean is: {mean_grouped}"
+
+    def median_grouped(self):
+        """Calculate the median for grouped frequencies"""
+
+        # Calculate the median position in relation to the total of data
+
+        if self.n % 2 == 0:
+            first_position = (self.n // 2)
+            second_position = (self.n // 2) + 1
+            median_value = (first_position + second_position) // 2
+        else:
+            median_value = ((self.n + 1) // 2)
+
+        # Determinate which interval is median
+        median_interval = None
+        median_index = None
+        for frequency in self.freq_absolute:
+            previous_index = self.freq_absolute.index(frequency) - 1
+            median_index = self.freq_absolute.index(frequency)
+            if self.freq_absolute[previous_index] < median_value <= frequency:
+                median_interval = self.intervals_for_frequency[median_index]
+
+        # Calculate the median
+        median = median_interval[0] + (((self.n / 2) -
+                                        self.freq_cumulative[median_index - 1])
+                                       / self.freq_absolute[median_index]) * self.interval_width
+        return f"--> The median is: {median}"
+
+    def trend_grouped(self):
+        max_freq = max(self.freq_absolute)
+        trend_position = self.freq_absolute.index(max_freq)
+        trend_interval = self.intervals_for_frequency[trend_position]
+
+        # d1 = Difference between the absolute frequency of  trend and the previous absolute frequency
+        d1 = self.freq_absolute[trend_position] - self.freq_absolute[trend_position - 1]
+
+        # d2 = Difference between the absolute frequency of  trend and the next absolute frequency
+        if self.freq_absolute[trend_position] == self.freq_absolute[-1]:
+            # When the absolute frequency is equal to the last frequency
+            d2 = self.freq_absolute[trend_position]
+        else:
+            d2 = self.freq_absolute[trend_position] - self.freq_absolute[trend_position + 1]
+        trend = round(trend_interval[0] + (d1/(d1 - d2)) * self.interval_width, 2)
+        return f"--> The trend is: {trend}"
+
+
 class MakeHistogram(GroupedFrequencyTable):
     """Create the histogram"""
+
     def __init__(self, raw_data):
         super().__init__(raw_data)
         MakeHistogram.fi(self)
