@@ -110,7 +110,7 @@ class UngroupedFrequencyTable:
 
 class CentralTrendMeasures(UngroupedFrequencyTable):
     """This class calculate the central trend measures for ungrouped frequencies"""
-    def __init__(self,raw_data):
+    def __init__(self, raw_data):
         super().__init__(raw_data)
         # Create de data frame and initialize the calculation of variables
         CentralTrendMeasures.make_data_frame(self)
