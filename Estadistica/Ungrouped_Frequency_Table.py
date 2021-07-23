@@ -1,4 +1,5 @@
 from pandas import DataFrame
+from math import sqrt
 
 
 class UngroupedFrequencyTable:
@@ -78,18 +79,9 @@ class UngroupedFrequencyTable:
         self.percentage_var = percentage_var
         # return self.percentage_var
 
-    def calculate_all(self):
-        """Calculate all frequencies"""
-        UngroupedFrequencyTable.get_variable(self)
-        UngroupedFrequencyTable.fi(self)
-        UngroupedFrequencyTable.fac(self)
-        UngroupedFrequencyTable.fr(self)
-        UngroupedFrequencyTable.fr_ac(self)
-        UngroupedFrequencyTable.percentage(self)
-
     def nest_frequency(self):
         """Nest the frequencies in one variable for make a pandas DataFrame"""
-        UngroupedFrequencyTable.calculate_all(self)
+        # UngroupedFrequencyTable.calculate_all(self)
         table_frequency = []
         for a, b, c, d, e, f in zip(self.variables, self.freq_absolute, self.freq_cumulative, self.freq_relative,
                                     self.freq_relative_cumulative, self.percentage_var):
@@ -99,43 +91,58 @@ class UngroupedFrequencyTable:
 
     def make_data_frame(self):
         """Make a data frame from table_frequency"""
-        UngroupedFrequencyTable.nest_frequency(self)
+        # UngroupedFrequencyTable.nest_frequency(self)
         df = DataFrame(self.table_frequency, columns=["Variable", "Absolute Frequency",
                                                       "Absolute Cumulative Frequency", "Relative Frequency",
                                                       "Relative Cumulative Frequency", "Percentage"])
         self.df = df
         # self.df.to_csv("")
+        self.df.to_csv(r'/home/cocho/Documents/Proyectos python/Estadistica/csv/Test.csv', index=False)
         return self.df
+
+    def calculate_all(self):
+        """Calculates all frequencies"""
+        UngroupedFrequencyTable.get_variable(self)
+        UngroupedFrequencyTable.fi(self)
+        UngroupedFrequencyTable.fac(self)
+        UngroupedFrequencyTable.fr(self)
+        UngroupedFrequencyTable.fr_ac(self)
+        UngroupedFrequencyTable.percentage(self)
+        UngroupedFrequencyTable.nest_frequency(self)
+        print(UngroupedFrequencyTable.make_data_frame(self))
 
 
 class CentralTrendMeasures(UngroupedFrequencyTable):
     """This class calculate the central trend measures for ungrouped frequencies"""
+
     def __init__(self, raw_data):
         super().__init__(raw_data)
-        # Create de data frame and initialize the calculation of variables
-        CentralTrendMeasures.make_data_frame(self)
+        self.mean = None
+        self.median = None
 
     def arithmetic_mean(self):
-        """Calculate the arithmetic mean of the raw data"""
+        """Calculates the arithmetic mean of the raw data"""
         summation = sum(self.raw_data)
         mean = round(summation / self.n, 2)
-        print(f"The mean is {mean}")
+        print(f"The mean is: {mean}")
+        self.mean = mean
 
     def median(self):
-        """Calculate the median of the raw data"""
+        """Calculates the median of the raw data"""
         amount_data = len(self.raw_data)  # Number of date in the list
         if amount_data % 2 == 0:
             first_position = (amount_data // 2) - 1
             second_position = (amount_data // 2)
-            median_pair = (self.raw_data[first_position] + self.raw_data[second_position]) // 2
-            print(f"The median is: {median_pair}")
+            median = (self.raw_data[first_position] + self.raw_data[second_position]) // 2
+            print(f"The median is: {median}")
 
         else:
-            median_odd = self.raw_data[((amount_data + 1) // 2) - 1]
-            print(f"The median is: {median_odd}")
+            median = self.raw_data[((amount_data + 1) // 2) - 1]
+            print(f"The median is: {median}")
+        self.median = median
 
     def trend(self):
-        """Calculate the trends"""
+        """Calculates the trends"""
         max_freq = max(self.freq_absolute)
         amount_trend = self.freq_absolute.count(max_freq)
         if 1 < amount_trend:
@@ -156,6 +163,64 @@ class CentralTrendMeasures(UngroupedFrequencyTable):
             print(f"The trend is {unimodal_list} and is a unimodal")
 
     def get_all(self):
+        CentralTrendMeasures.calculate_all(self)
         CentralTrendMeasures.arithmetic_mean(self)
         CentralTrendMeasures.median(self)
         CentralTrendMeasures.trend(self)
+
+
+class DeviationMeasures(CentralTrendMeasures):
+    """Calculates all deviation measures"""
+
+    def __init__(self, raw_data):
+        super().__init__(raw_data)
+        self.variance_s = None
+        self.variance_p = None
+        self.standard_for_sample = None
+        self.standard_for_population = None
+
+    def deviation_media(self):
+        """Calculates the deviation media of the data"""
+        deviation_list = []
+        for value in range(len(self.variables)):
+            deviation_list.append(abs((self.mean - self.variables[value]) * self.freq_absolute[value]))
+
+        deviation_media = round(sum(deviation_list) / self.n, 2)
+        return deviation_media
+
+    def sample_variance(self):
+        """Calculates the variance of a sample"""
+        sample_variance_list = []
+        for variable in range(len(self.variables)):
+            sample_variance_list.append(((self.mean - self.variables[variable]) ** 2) * self.freq_absolute[variable])
+        self.variance_s = round(sum(sample_variance_list) / (self.n - 1), 2)
+        return f"- The sample variance is: {self.variance_s}"
+
+    def population_variance(self):
+        """Calculates the variance of a population"""
+        population_variance_list = []
+        for variable in range(len(self.variables)):
+            population_variance_list.append(
+                ((self.mean - self.variables[variable]) ** 2) * self.freq_absolute[variable])
+        self.variance_p = round(sum(population_variance_list) / self.n, 2)
+        return f"- The population variance is: {self.variance_p}"
+
+    def standard_deviation(self):
+        self.standard_for_sample = round(sqrt(self.variance_s), 1)
+        self.standard_for_population = round(sqrt(self.variance_p), 1)
+        return f"-- The standard deviation for sample is: {self.standard_for_sample} \n" \
+               f"-- The standard deviation for population is: {self.standard_for_population}"
+
+    def coefficient_variance(self):
+        cv_s = round(self.standard_for_sample / self.mean, 1)
+        cv_p = round(self.standard_for_population / self.mean, 1)
+        return f"--> The coefficient of variance for sample is: {cv_s} \n"\
+               f"--> The coefficient of variance for population is: {cv_p}"
+
+    def make_all(self):
+        DeviationMeasures.get_all(self)
+        DeviationMeasures.deviation_media(self)
+        print(DeviationMeasures.sample_variance(self))
+        print(DeviationMeasures.population_variance(self))
+        print(DeviationMeasures.standard_deviation(self))
+        print(DeviationMeasures.coefficient_variance(self))

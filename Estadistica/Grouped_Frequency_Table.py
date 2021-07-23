@@ -115,7 +115,7 @@ class GroupedFrequencyTable(UngroupedFrequencyTable):
                                 "Relative Cumulative Frequency", "Percentage"])
         # Path: /home/cocho/Documents/Proyectos python/Estadistica/csv
         self.df = df
-        self.df.to_csv(r'/home/cocho/Documents/Proyectos python/Estadistica/csv/Test.csv', index=False)
+        # self.df.to_csv(r'/home/cocho/Documents/Proyectos python/Estadistica/csv/Test.csv', index=False)
         return self.df
 
     def calculate_all(self):
@@ -140,6 +140,7 @@ class CentralTrendMeasuresGrouped(GroupedFrequencyTable):
         # CentralTrendMeasuresGrouped.calculate_all(self)
         self.median_interval = None
         self.median_index = None
+        self.mean_grouped = None
 
     def arithmetic_mean_grouped(self):
         """Calculate the arithmetic mean of grouped frequencies"""
@@ -149,29 +150,34 @@ class CentralTrendMeasuresGrouped(GroupedFrequencyTable):
         for p in range(len(self.class_mark)):
             summation.append(self.class_mark[p] * self.freq_absolute[p])
         mean_grouped = round(sum(summation) / self.n, 2)
+        self.mean_grouped = mean_grouped
         return f"--> The mean is: {mean_grouped}"
 
     def median_grouped(self):
         """Calculate the median for grouped frequencies"""
         # Calculate the median position in relation to the total of data
         if self.n % 2 == 0:
-            first_position = (self.n // 2) - 1
-            second_position = (self.n // 2)
+            first_position = (self.n // 2)
+            second_position = (self.n // 2) + 1
             median_value = (first_position + second_position) // 2
         else:
-            median_value = ((self.n + 1) // 2) - 1
+            median_value = (self.n + 1) // 2
 
         # Determinate which interval is median
-        median_index = 0
+        self.median_index = 0
         for i in range(len(self.freq_cumulative)):
             if self.freq_cumulative[i] > median_value:
-                median_index += i
+                self.median_index += i
                 break
 
         # Calculate the median
-        median_interval = self.intervals_for_frequency[median_index][0]
-        division_up = ((self.n / 2) - self.freq_cumulative[median_index - 1])
-        median_grouped = round(median_interval + (division_up / self.freq_absolute[median_index]) * self.interval_width, 2)
+        self.median_interval = self.intervals_for_frequency[self.median_index][0]
+        if self.median_index == 0:
+            division_up = ((self.n / 2) - 0)
+        else:
+            division_up = ((self.n / 2) - self.freq_cumulative[self.median_index - 1])
+        median_grouped = round(self.median_interval + (division_up / self.freq_absolute[self.median_index]) *
+                               self.interval_width, 2)
         return f"--> The median is: {median_grouped}"
         # return median_interval
 
@@ -193,18 +199,18 @@ class CentralTrendMeasuresGrouped(GroupedFrequencyTable):
         return f"--> The trend is: {trend}"
 
     def calculate_central_measures(self):
-        print(CentralTrendMeasuresGrouped.calculate_all(self))
+        CentralTrendMeasuresGrouped.calculate_all(self)
         print(CentralTrendMeasuresGrouped.arithmetic_mean_grouped(self))
         print(CentralTrendMeasuresGrouped.median_grouped(self))
         print(CentralTrendMeasuresGrouped.trend_grouped(self))
 
 
-class MakeHistogram(GroupedFrequencyTable):
+class MakeHistogram(CentralTrendMeasuresGrouped):
     """Create the histogram"""
 
     def __init__(self, raw_data):
         super().__init__(raw_data)
-        MakeHistogram.fi(self)
+        MakeHistogram.calculate_central_measures(self)
 
     def make_hist(self):
         fig, ax = plt.subplots()
@@ -216,3 +222,17 @@ class MakeHistogram(GroupedFrequencyTable):
         ax.ylabel('Absolute frequency')
         ax.xticks(self.intervals_for_plot)
         ax.show()
+
+
+class DeviationMeasuresGrouped(CentralTrendMeasuresGrouped):
+    """Calculates all deviation measures"""
+    def __init__(self, raw_data):
+        super().__init__(raw_data)
+
+    def deviation_media(self):
+        deviation_list = []
+        for value in range(len(self.class_mark)):
+            deviation_list.append(abs((self.mean_grouped - self.class_mark[value]) * self.freq_absolute[value]))
+
+        deviation_media = round(sum(deviation_list) / self.n, 2)
+        return deviation_media
