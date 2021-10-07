@@ -1,3 +1,7 @@
+# Hecho por jose Scappini
+# Este modulo realiza la tabla de frecuencias, las medidas centrales y la medidas de dispersion para
+# datos agrupados por intervalos
+
 from math import log10
 from Estadistica.Ungrouped_Frequency_Table import UngroupedFrequencyTable
 import matplotlib.pyplot as plt
@@ -115,7 +119,7 @@ class GroupedFrequencyTable(UngroupedFrequencyTable):
                                 "Relative Cumulative Frequency", "Percentage"])
         # Path: /home/cocho/Documents/Proyectos python/Estadistica/csv
         self.df = df
-        # self.df.to_csv(r'/home/cocho/Documents/Proyectos python/Estadistica/csv/Test.csv', index=False)
+        self.df.to_csv(r'/home/cocho/Documents/Proyectos python/Estadistica/csv/TestGrouped.csv', index=False)
         return self.df
 
     def calculate_all(self):

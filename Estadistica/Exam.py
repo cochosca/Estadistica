@@ -1,4 +1,5 @@
-# hello
+# Hecho por jose Scappini
+# Este modulo realizar poliformismo a el modulo de Grouped_Frequency_Table
 from Estadistica.Ungrouped_Frequency_Table import CentralTrendMeasures
 from Grouped_Frequency_Table import *
 
