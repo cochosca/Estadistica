@@ -1,3 +1,6 @@
+# Hecho por jose Scappini
+# Este modulo realiza la tabla de frecuencias, las medidas centrales y la medidas de dispersion
+
 from pandas import DataFrame
 from math import sqrt
 
